@@ -79,18 +79,14 @@ export const unzipFile = async (
         .filter(entry => entry.isDirectory)
         .map(entry => entry.entryName);
 
-    const files = entries.filter(
-        (entry: { isDirectory: boolean }) => !entry.isDirectory
-    );
+    const files = entries
+        .filter(entry => !entry.isDirectory)
+        .filter(entry =>
+            filterPatterns.some(pattern => entry.entryName.match(pattern))
+        );
 
-    return Promise.all(
-        files
-            .filter(entry =>
-                filterPatterns.some(pattern => entry.entryName.match(pattern))
-            )
-            .map(async entry => ({
-                path: entry.entryName.replace(new RegExp(`^${rootDir}`), ''),
-                content: entry.getData().toString()
-            }))
-    );
+    return files.map(entry => ({
+        path: entry.entryName.replace(new RegExp(`^${rootDir}`), ''),
+        content: entry.getData().toString()
+    }));
 };
