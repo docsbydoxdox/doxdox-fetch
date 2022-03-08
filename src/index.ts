@@ -6,7 +6,9 @@ import { File } from 'doxdox-core';
 
 import { parseString } from 'doxdox-parser-jsdoc';
 
-import { Repo, RepoData, RawTag } from './types';
+import { fetch } from 'raspar';
+
+import { Repo, Tag } from './types';
 
 export const downloadFile = async (
     username: string,
@@ -14,51 +16,70 @@ export const downloadFile = async (
     branch: string,
     filterPatterns: RegExp[] = []
 ): Promise<{ path: string; content: string }[]> => {
-    const { data } = await axios({
-        url: `https://github.com/${username}/${repo}/archive/${branch}.zip`,
-        method: 'GET',
-        responseType: 'arraybuffer'
-    });
+    const { data } = await axios.get(
+        `https://github.com/${username}/${repo}/archive/${branch}.zip`,
+        {
+            responseType: 'arraybuffer'
+        }
+    );
 
     return await unzipFile(Buffer.from(data), filterPatterns);
+};
+
+export const getRepoDataRaw = async (
+    username: string,
+    repo: string,
+    options: { GITHUB_API_TOKEN?: string } = {}
+): Promise<{ repoData: Repo; rawTags: Tag[] }> => {
+    const repoData = await fetch(
+        `https://api.github.com/repos/${username}/${repo}`,
+        {
+            headers: {
+                Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+
+    const rawTags = await fetch(
+        `https://api.github.com/repos/${username}/${repo}/tags`,
+        {
+            headers: {
+                Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+
+    return {
+        repoData: JSON.parse(repoData) as Repo,
+        rawTags: JSON.parse(rawTags) as Tag[]
+    };
 };
 
 export const getRepoData = async (
     username: string,
     repo: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    branch?: string | undefined
-): Promise<Repo> => {
-    const { data: repoData } = await axios.get<RepoData>(
-        `https://api.github.com/repos/${username}/${repo}`,
-        {
-            headers: {
-                Authorization: `Bearer ${process.env.GITHUB_API_TOKEN_READONLY}`,
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-
-    const { data: rawTags } = await axios.get<RawTag[]>(
-        `https://api.github.com/repos/${username}/${repo}/tags`,
-        {
-            headers: {
-                Authorization: `Bearer ${process.env.GITHUB_API_TOKEN_READONLY}`,
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-
-    const tags = rawTags.map((rawTag: RawTag) => rawTag.name);
+    options: { GITHUB_API_TOKEN?: string } = {}
+): Promise<{
+    name: string;
+    private: boolean;
+    html_url: string;
+    description: string;
+    default_branch: string;
+    language: string;
+    tags: string[];
+}> => {
+    const { repoData, rawTags } = await getRepoDataRaw(username, repo, options);
 
     return {
         name: repoData.name,
-        private: repoData.private,
+        private: repoData.private === 'true',
         html_url: repoData.html_url,
         description: repoData.description,
         default_branch: repoData.default_branch,
         language: repoData.language,
-        tags
+        tags: rawTags.map(rawTag => rawTag.name)
     };
 };
 
