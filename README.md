@@ -46,7 +46,9 @@ GITHUB_API_TOKEN_READONLY=xxxxx
 import { downloadFile, getRepoData, parseFiles } from 'doxdox-fetch';
 
 (async () => {
-  const data = await getRepoData('neogeek', 'pocket-sized-facade.js');
+  const data = await getRepoData('neogeek', 'pocket-sized-facade.js', {
+    GITHUB_API_TOKEN: process.env.GITHUB_API_TOKEN_READONLY
+  });
 
   const files = await downloadFile(
     'neogeek',
@@ -56,11 +58,22 @@ import { downloadFile, getRepoData, parseFiles } from 'doxdox-fetch';
   );
 
   const jsFiles = files.filter(
-    ({ path }) => path.match(/\.js$/) && !path.match(/\.min\.js$/)
+    ({ path }) =>
+      path.match(/\.js$/) &&
+      !path.match(/\.min\.js$/) &&
+      !path.match(/\.test\.js$/) &&
+      !path.match(/^dist\//) &&
+      !path.match(/__tests__\//)
   );
 
+  const pkgFile = files.find(({ path }) => path.match(/package\.json$/));
+
+  const pkgFileContents = JSON.parse(pkgFile?.content || '{}');
+
   const doc = {
-    ...data,
+    name: pkgFileContents.name || data.name,
+    description: pkgFileContents.description || data.description,
+    homepage: pkgFileContents.homepage || data.html_url,
     files: await parseFiles(jsFiles)
   };
 
