@@ -10,6 +10,10 @@ import { fetch } from 'raspar';
 
 import { Repo, Tag } from './types';
 
+const BYTES_IN_MB = 1000000;
+
+const DEFAULT_MAX_BUFFER_SIZE_MB = 10;
+
 export const downloadFile = async (
     username: string,
     repo: string,
@@ -98,8 +102,13 @@ export const parseFiles = async (
 
 export const unzipFile = async (
     buffer: Buffer,
-    filterPatterns: RegExp[] = []
+    filterPatterns: RegExp[] = [],
+    maxBufferSize = DEFAULT_MAX_BUFFER_SIZE_MB * BYTES_IN_MB
 ): Promise<{ path: string; content: string }[]> => {
+    if (Buffer.byteLength(buffer) > maxBufferSize) {
+        throw new Error('Buffer too large.');
+    }
+
     const entries = new Zip(buffer).getEntries();
 
     const [rootDir] = entries
