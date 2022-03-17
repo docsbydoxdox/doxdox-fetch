@@ -34,9 +34,11 @@ export const getRepoDataRaw = async (
     const repoData = await fetch(
         `https://api.github.com/repos/${username}/${repo}`,
         {
-            headers: {
-                Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
-                'Content-Type': 'application/json'
+            requestOptions: {
+                headers: {
+                    Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
             }
         }
     );
@@ -44,9 +46,11 @@ export const getRepoDataRaw = async (
     const rawTags = await fetch(
         `https://api.github.com/repos/${username}/${repo}/tags`,
         {
-            headers: {
-                Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
-                'Content-Type': 'application/json'
+            requestOptions: {
+                headers: {
+                    Authorization: `Bearer ${options.GITHUB_API_TOKEN}`,
+                    'Content-Type': 'application/json'
+                }
             }
         }
     );
