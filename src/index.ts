@@ -67,6 +67,7 @@ export const getRepoData = async (
     html_url: string;
     description: string;
     default_branch: string;
+    avatar: string;
     language: string;
     tags: string[];
 }> => {
@@ -78,6 +79,7 @@ export const getRepoData = async (
         html_url: repoData.html_url,
         description: repoData.description,
         default_branch: repoData.default_branch,
+        avatar: repoData.owner.avatar_url,
         language: repoData.language,
         tags: rawTags.map(rawTag => rawTag.name)
     };
