@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
@@ -17,13 +21,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [12.20.0, 14.13.1, 16.0.0]
+        node: [18, 20]
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
 
@@ -41,3 +46,5 @@ jobs:
       - name: Run tests
         timeout-minutes: 5
         run: npm test
+        env:
+          API_TOKEN_READONLY: ${{ secrets.API_TOKEN_READONLY }}

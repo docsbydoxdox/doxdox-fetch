@@ -1,5 +1,7 @@
 .github/
 
+coverage/
+
 src/
 
 .eslintrc
@@ -8,3 +10,7 @@ src/
 .prettierrc
 
 tsconfig.json
+
+temp/
+
+.env
