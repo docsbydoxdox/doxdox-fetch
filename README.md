@@ -28,7 +28,7 @@ GITHUB_API_TOKEN_READONLY=xxxxx
 {
   "type": "module",
   "dependencies": {
-    "doxdox-fetch": "1.0.0"
+    "doxdox-fetch": "2.0.0"
   },
   "devDependencies": {
     "dotenv": "16.0.0"
@@ -45,23 +45,31 @@ GITHUB_API_TOKEN_READONLY=xxxxx
 ```javascript
 import { downloadFile, getRepoData, parseFiles } from 'doxdox-fetch';
 
+import { parseString } from 'doxdox-parser-custom';
+
+import { Doc } from 'doxdox-core/dist/types';
+
 (async () => {
-  const data = await getRepoData('neogeek', 'pocket-sized-facade.js', {
+  const repoData = await getRepoData(username, repo, {
     GITHUB_API_TOKEN: process.env.GITHUB_API_TOKEN_READONLY
   });
 
-  const files = await downloadFile(
-    'neogeek',
-    'pocket-sized-facade.js',
-    data.default_branch,
-    [/.js$/, /package.json$/, /\.doxdoxignore$/]
-  );
+  const currentBranch =
+    branch && [repoData.default_branch, ...repoData.tags].includes(branch)
+      ? branch
+      : repoData.default_branch;
+
+  const files = await downloadFile(username, repo, currentBranch, [
+    /.[jt]sx?$/,
+    /package.json$/,
+    /\.doxdoxignore$/
+  ]);
 
   const jsFiles = files.filter(
     ({ path }) =>
-      path.match(/\.js$/) &&
-      !path.match(/\.min\.js$/) &&
-      !path.match(/\.test\.js$/) &&
+      path.match(/\.[jt]sx?$/) &&
+      !path.match(/\.min\.[jt]sx?$/) &&
+      !path.match(/\.test\.[jt]sx?$/) &&
       !path.match(/^dist\//) &&
       !path.match(/__tests__\//)
   );
@@ -70,11 +78,11 @@ import { downloadFile, getRepoData, parseFiles } from 'doxdox-fetch';
 
   const pkgFileContents = JSON.parse(pkgFile?.content || '{}');
 
-  const doc = {
-    name: pkgFileContents.name || data.name,
-    description: pkgFileContents.description || data.description,
-    homepage: pkgFileContents.homepage || data.html_url,
-    files: await parseFiles(jsFiles)
+  const doc: Doc = {
+    name: pkgFileContents.name || repoData.name,
+    description: pkgFileContents.description || repoData.description,
+    homepage: pkgFileContents.homepage || repoData.html_url,
+    files: await parseFiles(jsFiles, parseString)
   };
 
   console.log(doc);
