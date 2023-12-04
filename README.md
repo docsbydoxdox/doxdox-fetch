@@ -42,25 +42,25 @@ GITHUB_API_TOKEN_READONLY=xxxxx
 
 **index.js**
 
-```javascript
+```typescript
 import { downloadFile, getRepoData, parseFiles } from 'doxdox-fetch';
 
 import { parseString } from 'doxdox-parser-custom';
 
-import { Doc } from 'doxdox-core/dist/types';
+import { Doc } from 'doxdox-core';
 
 (async () => {
   const repoData = await getRepoData(username, repo, {
     GITHUB_API_TOKEN: process.env.GITHUB_API_TOKEN_READONLY
   });
 
-  const currentBranch =
+  const selectedBranch =
     branch && [repoData.default_branch, ...repoData.tags].includes(branch)
       ? branch
       : repoData.default_branch;
 
-  const files = await downloadFile(username, repo, currentBranch, [
-    /.[jt]sx?$/,
+  const files = await downloadFile(username, repo, selectedBranch, [
+    /.[jt]s$/,
     /package.json$/,
     /\.doxdoxignore$/
   ]);
@@ -74,7 +74,7 @@ import { Doc } from 'doxdox-core/dist/types';
       !path.match(/__tests__\//)
   );
 
-  const pkgFile = files.find(({ path }) => path.match(/package\.json$/));
+  const pkgFile = files.find(({ path }) => path.match(/^package\.json$/));
 
   const pkgFileContents = JSON.parse(pkgFile?.content || '{}');
 
