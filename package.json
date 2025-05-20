@@ -9,8 +9,7 @@
   },
   "dependencies": {
     "adm-zip": "0.5.16",
-    "doxdox-core": "4.0.0-preview.25",
-    "node-fetch": "3.3.2"
+    "doxdox-core": "4.0.0-preview.25"
   },
   "devDependencies": {
     "@types/adm-zip": "0.5.7",
