@@ -1,7 +1,5 @@
 import Zip from 'adm-zip';
 
-import nodeFetch from 'node-fetch';
-
 import { File } from 'doxdox-core';
 
 import { Repo, Tag } from './types';
@@ -14,7 +12,7 @@ export const fetchFromGitHubAPI = async <T>(
   path: string,
   token: string | undefined
 ) => {
-  const response = await nodeFetch(`https://api.github.com/${path}`, {
+  const response = await fetch(`https://api.github.com/${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -36,7 +34,7 @@ export const downloadFile = async (
   branch: string,
   filterPatterns: RegExp[] = []
 ): Promise<{ path: string; content: string }[]> => {
-  const response = await nodeFetch(
+  const response = await fetch(
     `https://github.com/${username}/${repo}/archive/${branch}.zip`
   );
 
